@@ -1,0 +1,21 @@
+# Create the environment
+#
+# conda env create -f environment.yml
+
+# Changing the environment
+# "--prune" removes packages which are not needed
+#
+# conda env update -f environment.yml --prune
+
+# Activate environment
+#
+# conda activate kwant-env
+
+name: kwant-env
+channels:
+  - defaults
+dependencies:
+  - python=3.12.4
+  - openblas=0.3.21 # Fix smatrix calculation of kwant on macOS (arm?)
+  - conda-forge::kwant=1.5.0
+  - numpy
