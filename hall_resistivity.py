@@ -12,7 +12,7 @@ import kwant
 from kwant.digest import uniform
 from cmath import exp
 
-def make_hall_bar(W=30, L=50, t=1, U0=0, salt=0):
+def make_hall_bar(W: int, L: int, t: float, B_in_Lead: bool, leadLeftRightDistanceToCorner: int, leadTopBottomWidth: int, leadTopBottomDistanceToCorner: int):
     # Use a square lattice with one orbital per site
     lat = kwant.lattice.square(a=1, norbs=1)
     sys = kwant.Builder()
@@ -33,8 +33,8 @@ def make_hall_bar(W=30, L=50, t=1, U0=0, salt=0):
 
     # Left lead (0) and right lead (1): horizontal gauge, clean
     lead_left = kwant.Builder(kwant.TranslationalSymmetry([-1, 0]))
-    lead_left[(lat(0, y) for y in range(W))] = 4 * t
-    lead_left[lat.neighbors()] = hop_horiz
+    lead_left[(lat(0, y) for y in range(leadLeftRightDistanceToCorner, W - leadLeftRightDistanceToCorner))] = 4 * t
+    lead_left[lat.neighbors()] = lambda i, j, phi, t: hop_horiz(i, j, phi if B_in_Lead else 0, t)
     sys.attach_lead(lead_left)
     sys.attach_lead(lead_left.reversed())
 
@@ -43,30 +43,30 @@ def make_hall_bar(W=30, L=50, t=1, U0=0, salt=0):
         xi, yi = site_i.pos
         xj, yj = site_j.pos
         # Phase on vertical hoppings only
-        if xi == xj:
+        if xi == xj and B_in_Lead:
             return -t * exp(0.5j * phi * (yj - yi) * (xi + xj))
         return -t
 
     # Voltage probes: attach four wide leads on top/bottom
-    x_mid = L // 2
+
     # Top-left (lead 2): covers x in [0, x_mid)
     lead_tl = kwant.Builder(kwant.TranslationalSymmetry([0, 1]))
-    lead_tl[(lat(x, W - 1) for x in range(0, x_mid))] = 4 * t
+    lead_tl[(lat(x, W - 1) for x in range(leadTopBottomDistanceToCorner, leadTopBottomDistanceToCorner + leadTopBottomWidth))] = 4 * t
     lead_tl[lat.neighbors()] = hop_vert
     sys.attach_lead(lead_tl)
     # Top-right (lead 3): covers x in [x_mid, L)
     lead_tr = kwant.Builder(kwant.TranslationalSymmetry([0, 1]))
-    lead_tr[(lat(x, W - 1) for x in range(x_mid, L))] = 4 * t
+    lead_tr[(lat(x, W - 1) for x in range(L-leadTopBottomDistanceToCorner-leadTopBottomWidth, L-leadTopBottomDistanceToCorner))] = 4 * t
     lead_tr[lat.neighbors()] = hop_vert
     sys.attach_lead(lead_tr)
     # Bottom-left (lead 4): covers x in [0, x_mid)
     lead_bl = kwant.Builder(kwant.TranslationalSymmetry([0, -1]))
-    lead_bl[(lat(x, 0) for x in range(0, x_mid))] = 4 * t
+    lead_bl[(lat(x, 0) for x in range(leadTopBottomDistanceToCorner, leadTopBottomDistanceToCorner + leadTopBottomWidth))] = 4 * t
     lead_bl[lat.neighbors()] = hop_vert
     sys.attach_lead(lead_bl)
     # Bottom-right (lead 5): covers x in [x_mid, L)
     lead_br = kwant.Builder(kwant.TranslationalSymmetry([0, -1]))
-    lead_br[(lat(x, 0) for x in range(x_mid, L))] = 4 * t
+    lead_br[(lat(x, 0) for x in range(L-leadTopBottomDistanceToCorner-leadTopBottomWidth, L-leadTopBottomDistanceToCorner))] = 4 * t
     lead_br[lat.neighbors()] = hop_vert
     sys.attach_lead(lead_br)
 
@@ -163,11 +163,35 @@ def main():
                         help='Finite-temperature smearing (same units as --energy)')
     parser.add_argument('--nE', type=int, default=21,
                         help='Number of energy points for thermal averaging')
+    parser.add_argument('--BinLeads', type=bool, default=False,
+                        help='Has B field in the leads (i.e., Peierls phase)')
+    parser.add_argument('--leadLeftRightDistanceToCorner', type=int, default=0,
+                        help='Distance of left and right leads to the corners of the rectangular system in lattice constants.')
+    parser.add_argument('--leadTopBottomWidth', type=int, default=0,
+                        help='The width of the lead in lattice constants.')
+    parser.add_argument('--leadTopBottomDistanceToCorner', type=int, default=0,
+                        help='Distance of top and bottom leads to the corners of the rectangular system in lattice constants.')
     args = parser.parse_args()
 
     # Stage 1/3: Build and finalize the 6-terminal Hall bar geometry
     print(f"Stage 1/3: Building system geometry (W={args.W}, L={args.L}, U0={args.U0}, salt={args.salt})...")
-    system = make_hall_bar(W=args.W, L=args.L, t=1, U0=args.U0, salt=args.salt)
+
+    args.leadTopBottomWidth = args.L // 5 # args.L // 2
+    args.leadTopBottomDistanceToCorner = args.L // 5 # 0
+
+    system = make_hall_bar(
+        W=args.W,
+        L=args.L,
+        t=1,
+        B_in_Lead=args.BinLeads,
+        leadLeftRightDistanceToCorner=args.leadLeftRightDistanceToCorner,
+        leadTopBottomWidth=args.leadTopBottomWidth,
+        leadTopBottomDistanceToCorner=args.leadTopBottomDistanceToCorner
+    )
+
+    # save system image to "system.pdf"
+    kwant.plot(system, file="system.pdf")
+
     print("Stage 1/3 complete: system geometry built.")
     phis = np.linspace(args.phi_min, args.phi_max, args.nphis)
     # Convert dimensionless flux phi → physical B-field in Tesla
@@ -214,8 +238,8 @@ def main():
     # Stage 2/3 complete: resistivities computed.
     # Stage 3/3: Plotting resistivities vs. B (Tesla)
     plt.figure()
-    plt.plot(B, rho_xx, label=r'$\rho_{xx}$')
-    plt.plot(B, rho_xy, label=r'$\rho_{xy}$')
+    plt.plot(B, rho_xx, "-", label=r'$\rho_{xx}$')
+    plt.plot(B, rho_xy, "--", label=r'$\rho_{xy}$')
     # Overlay classical curves if provided
     if rho_xx_cl is not None:
         plt.plot(B, np.full_like(B, rho_xx_cl),
@@ -223,7 +247,7 @@ def main():
         plt.plot(B, rho_xy_cl,
                  '--', color='gray', label=r'classical $\rho_{xy}$')
     # Add quantum Hall plateau lines at 1/n (h/e^2)
-    for n in [1, 2, 3, 4, 5]:
+    for n in range(1, 8+1):
         plateau = 1.0 / n
         plt.axhline(plateau, color='black', linestyle=':', linewidth=0.8)
         # annotate plateau
@@ -237,11 +261,21 @@ def main():
     if args.outfile:
         filename = args.outfile
     else:
-        filename = (f'hall_W{args.W}_L{args.L}_E{args.energy:g}'
-                    f'_U0{args.U0:g}_T{args.temp:g}'
+        filename = (f'hall_W{args.W}'
+                    f'_L{args.L}'
+                    f'_E{args.energy:g}'
+                    f'_U0{args.U0:g}'
+                    f'_T{args.temp:g}'
                     f'_phi{args.phi_min:g}-{args.phi_max:g}'
-                    f'_nphis{args.nphis}_nseeds{args.nseeds}.png')
+                    f'_nphis{args.nphis}_nseeds{args.nseeds}'
+                    f'_BiL{args.BinLeads}'
+                    f'_LLRdC{args.leadLeftRightDistanceToCorner}'
+                    f'_LTBW{args.leadTopBottomWidth}'
+                    f'_LTBdC{args.leadTopBottomDistanceToCorner}'
+                    '.pdf')
     plt.savefig(filename)
+    # use this PDF for showing the latest resistivity plot
+    plt.savefig("resistivity_latest.pdf")
     print(f'Saved plot to {filename}')
     # Stage 3/3 complete: plot generated and saved.
 

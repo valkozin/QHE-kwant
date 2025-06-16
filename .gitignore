@@ -1,3 +1,18 @@
 .DS_Store
 .env
 *.png
+
+# Latex
+LatexOut
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.pdf
+*.synctex.gz
+*.bib
+
+# Don't ignore some files in "Figures"
+!Figures/**/*.png
