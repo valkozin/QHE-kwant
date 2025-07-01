@@ -11,6 +11,142 @@ import os
 import kwant
 from kwant.digest import uniform
 from cmath import exp
+from pydantic import BaseModel
+
+class LeadParameters(BaseModel):
+    """
+    The parameters of the leads
+    """
+
+    @classmethod
+    def defaultRelativeTo(cls, hallBarDimensions: tuple[int, int]):
+        """
+        Returns the default arguments of `LeadParameters` for a Hall bar of dimensions [W, L], where
+        - The left and right lead have width W
+        - The top and bottom leads have with and distance to corners and themselves L//5.
+
+        Parameters
+            hallBarDimensions: The dimensions of the Hall bar [W, L]
+        """
+        topBottomLeadDimensions = hallBarDimensions[1]//5
+        return LeadParameters(
+            BinLeads=False,
+            leadLeftRightDistanceToCorner=0,
+            leadTopBottomWidth=topBottomLeadDimensions,
+            leadTopBottomDistanceToCorner=topBottomLeadDimensions
+        )
+
+    BinLeads: bool
+    """Has B field in the leads (i.e., Peierls phase)."""
+
+    leadLeftRightDistanceToCorner: int
+    """Distance of left and right leads to the corners of the rectangular system in lattice constants."""
+
+    leadTopBottomWidth: int
+    """The width of the lead in lattice constants."""
+
+    leadTopBottomDistanceToCorner: int
+    """Distance of top and bottom leads to the corners of the rectangular system in lattice constants."""
+
+class StaticHallBarParameters(BaseModel):
+    """
+    The parameters of the Hall bar that cannot change once the system is built.
+    """
+
+    @classmethod
+    def default(cls):
+        """Generate the default Hall bar parameters"""
+        W = 50
+        L = 90
+        leadParameters = LeadParameters.defaultRelativeTo([W, L])
+        return StaticHallBarParameters(
+            W=W,
+            L=L,
+            a=1e-9,
+            leadParameters=leadParameters,
+        )
+
+    W: int
+    """Width of the bar."""
+
+    L: int
+    """Length of the bar."""
+
+    a: float
+    """Lattice constant a (in meters) for B-field conversion."""
+
+    leadParameters: LeadParameters | None
+    """Parameters of the leads. If it is 'None', there are no leads."""
+
+    def hasLead(self):
+        return self.leadParameters is not None
+
+
+class DynamicHallBarParameters(BaseModel):
+    """
+    The parameters of the Hall bar that can change
+    """
+
+    @classmethod
+    def default(cls):
+        """
+        Default value of `DynamicHallBarParameters
+        """
+        return DynamicHallBarParameters(
+            t=1,
+            U0=0.1,
+            salt=13,
+        )
+
+    t: float
+    """Nearest neighbor hopping"""
+
+    U0: float
+    """Disorder strength."""
+
+    salt: int
+    """Random seed for disorder."""
+
+
+class ResistivityCalculationParameters(BaseModel):
+
+    @classmethod
+    def default(cls):
+        """
+        Default resistivity calculation parameters
+        """
+        return ResistivityCalculationParameters(
+            energy=0.2,
+            phis=np.linspace(0, 0.1, 51),
+            nseeds=1,
+            n2d=None,
+            mu=None,
+            temp=0.0,
+            nE=21,
+        )
+
+    energy: float
+    """Fermi energy."""
+
+    phis: list[float]
+    """List of Peierls phases (B-field)"""
+
+    nseeds: int
+    """Number of disorder seeds for averaging (default: 1)."""
+
+    n2d: float
+    """2D carrier density (m^-2) for classical overlay."""
+
+    mu: float
+    """Carrier mobility (m^2/Vs) for classical overlay."""
+
+    temp: float
+    """Finite-temperature smearing (same units as 'energy')."""
+
+    nE: int
+    """Number of energy points for thermal averaging."""
+
+
 
 def make_hall_bar(W: int, L: int, t: float, B_in_Lead: bool, leadLeftRightDistanceToCorner: int, leadTopBottomWidth: int, leadTopBottomDistanceToCorner: int):
     # Use a square lattice with one orbital per site

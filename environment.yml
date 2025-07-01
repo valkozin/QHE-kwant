@@ -19,3 +19,5 @@ dependencies:
   - openblas=0.3.21 # Fix smatrix calculation of kwant on macOS (arm?)
   - conda-forge::kwant=1.5.0
   - numpy
+  - ipykernel
+  - pydantic
