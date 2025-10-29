@@ -13,11 +13,14 @@
 
 name: kwant-env
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - python=3.12.4
   - openblas=0.3.21 # Fix smatrix calculation of kwant on macOS (arm?)
-  - conda-forge::kwant=1.5.0
-  - numpy
-  - ipykernel
-  - pydantic
+  - conda-forge::kwant=1.5.0 # Tight binding system creation
+  - numpy # Numerics
+  - ipykernel # Jupyter kernel
+  - pydantic # Better runtime validation
+  - plotly # Interactive plots
+  - nbformat #  plotly requires that?
