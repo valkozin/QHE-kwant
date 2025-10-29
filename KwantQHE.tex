@@ -64,6 +64,51 @@
 \maketitle
 
 
+\section{Introduction}
+
+In this project we want to discuss the effect of a cavity on the quantum Hall effect (QHE).
+
+We might discuss the following papers:
+\begin{itemize}
+	\item \citet{yi-thomasIntegerQuantumHall2025} (Das Sarma):
+		It is claimed that even a small temperature $k_B T = 0.05 \hbar \omega_c$ destroys QHE if the sample is perfectly clean.
+	\item \citet{arwasQuantumElectronTransport2023}:
+		Work on cavity-modified QHE, where they consider a small sample which is much larger than the magnetic localization length and included the cavity perturbatively.
+	\item \citet{kimQuantumHallEffect2021}:
+		A quasi-particle Wigner crystal (QPWC) results in the persistence of plateaus of finite extent even in the limit of vanishing disorder.
+	\item \citet{enknerTunableVacuumfieldControl2025}:
+		They demonstrate that adjusting the coupling strength between a two-dimensional electron gas and the vacuum fields of a hovering split-ring resonator leads to a significant reduction in exchange splitting at odd-integer filling factors, along with an enhancement of fractional quantum Hall gaps at filling factors 4/3, 5/3 and 7/5.
+\end{itemize}
+
+\section{Paper discussions}
+
+\subsection{Integer Quantum Hall Effect: Disorder, Temperature, Localization, Floating, and Plateau Width}
+
+In Ref.~\cite{yi-thomasIntegerQuantumHall2025} (Das Sarma),
+	it is claimed that even a small temperature $k_B T = 0.05 \hbar \omega_c$ destroys QHE if the sample is perfectly clean.
+Specifically they mention for disorder strength $\Gamma < k_B T$, that the plateau with in terms of the filling factor $\nu$ is zero (see Fig.~8 in their paper).
+We are not sure yet what is going on and need to investigate.
+
+Additionally, we suspect slight differences in the interpretation if the chemical potential is fixed or electron density is fixed.
+
+\subsection{Quantum Electron Transport Controlled by Cavity Vacuum Fields}
+
+In Ref.~\cite{arwasQuantumElectronTransport2023},
+	they analyze the cavity-modified QHE, where they consider a small sample which is much larger than the magnetic localization length and included the cavity perturbatively.
+
+We think the magnetic field acts like a local impurity (cyclotron motion) with the length scale
+\begin{align}
+	l_B = \sqrt{\frac{\hbar}{q_e B}},
+\end{align}
+where $q_e$ is the elementary charge and $B$ the magnetic flux density. For their parameters in Fig.~5 ($B = 1 \mathrm{T}$) we obtain $l_B = 25.7 \mathrm{nm}$.
+They use a system of dimensions $L_x = 500 \mathrm{nm}$ and $L_y = 333 \mathrm{nm}$.
+
+
+
+\section{Numerical results}
+
+\subsection{Effect of B field inside the leads and lead width}
+
 \begin{figure}[htbp]
 	\centering
 	% First row
@@ -123,5 +168,7 @@ If there is no $B$-field in narrow leads
 	[see \cref{fig: Resistivity(B): No B field in narrow leads}]
 	the $\rho_{xx}$ is pronounced when the bulk is conducting, since \todo{explain}
 
+
+\bibliography{Cavity_QHE.bib}
 
 \end{document}

@@ -2,6 +2,9 @@
 .env
 *.png
 
+# Python
+__pycache__
+
 # Latex
 LatexOut
 *.aux
@@ -12,7 +15,6 @@ LatexOut
 *.log
 *.pdf
 *.synctex.gz
-*.bib
 
 # Don't ignore some files in "Figures"
 !Figures/**/*.png
