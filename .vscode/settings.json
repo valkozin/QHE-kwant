@@ -1,3 +1,13 @@
 {
-	"latex-workshop.latex.outDir": "%DIR%/LatexOut"
+	"latex-workshop.latex.outDir": "%DIR%/LatexOut",
+	"cSpell.words": [
+		"axvline",
+		"kwant",
+		"plt",
+		"resistivities",
+		"xlabel",
+		"xlim",
+		"ylabel",
+		"ylim"
+	]
 }
