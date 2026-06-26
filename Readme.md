@@ -55,3 +55,9 @@ python3 hall_resistivity.py
 	- For any open `.tex` file
 		- Automatic: Change and save the file, e.g., with `CMD + S`.
 		- Manual: Press the green 'play button' in the top right corner.
+
+## Questions
+
+- Should the Hall bar have equal chemical potential in the scattering system and the leads?
+	- Zeb: The scattering system has a gate on top of it which fixes the density of electrons in the scattering system, but not the leads.
+		Thus, the chemical potential in the scattering region changes as a function magnetic filed, but the leads don't.
